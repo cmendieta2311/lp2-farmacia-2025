@@ -1,0 +1,273 @@
+-- =====================================================
+-- BASE DE DATOS FARMACIA PARAGUAYA - COMPLETA
+-- =====================================================
+-- CREATE DATABASE farmacia;
+
+-- =====================
+-- TABLAS MAESTRAS
+-- =====================
+
+-- Categorías de productos
+CREATE TABLE categoria (
+    id SERIAL PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    descripcion TEXT
+);
+
+-- Unidades de medida
+CREATE TABLE unidad_medida (
+    id SERIAL PRIMARY KEY,
+    nombre VARCHAR(50) NOT NULL,
+    abreviatura VARCHAR(10) NOT NULL
+);
+
+-- Roles
+CREATE TABLE rol (
+    id SERIAL PRIMARY KEY,
+    nombre VARCHAR(50) UNIQUE NOT NULL,
+    descripcion TEXT
+);
+
+-- Usuarios del sistema
+CREATE TABLE usuario (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    nombre VARCHAR(150) NOT NULL,
+    telefono VARCHAR(20),
+    email VARCHAR(100),
+    activo BOOLEAN DEFAULT TRUE,
+    rol_id INT REFERENCES rol(id)
+);
+
+-- =====================
+-- PROVEEDORES, CLIENTES, MÉDICOS
+-- =====================
+
+CREATE TABLE proveedor (
+    id SERIAL PRIMARY KEY,
+    nombre VARCHAR(150) NOT NULL,
+    ruc VARCHAR(20) UNIQUE NOT NULL,
+    telefono VARCHAR(20),
+    direccion TEXT
+);
+
+CREATE TABLE cliente (
+    id SERIAL PRIMARY KEY,
+    nombre VARCHAR(150) NOT NULL,
+    documento VARCHAR(20) UNIQUE,
+    telefono VARCHAR(20),
+    direccion TEXT
+);
+
+CREATE TABLE medico (
+    id SERIAL PRIMARY KEY,
+    nombre VARCHAR(150) NOT NULL,
+    matricula VARCHAR(50) UNIQUE NOT NULL,
+    especialidad VARCHAR(100)
+);
+
+-- =====================
+-- PRODUCTOS Y PRESENTACIONES
+-- =====================
+
+CREATE TABLE producto (
+    id SERIAL PRIMARY KEY,
+    nombre VARCHAR(150) NOT NULL,
+    descripcion TEXT,
+    categoria_id INT REFERENCES categoria(id),
+    unidad_base_id INT REFERENCES unidad_medida(id),
+    es_medicamento BOOLEAN DEFAULT FALSE,
+    requiere_receta BOOLEAN DEFAULT FALSE,
+    precio_compra NUMERIC(12,2) NOT NULL,
+    precio_sugerido NUMERIC(12,2) NOT NULL,
+    precio_venta NUMERIC(12,2) NOT NULL
+);
+
+CREATE TABLE presentacion (
+    id SERIAL PRIMARY KEY,
+    producto_id INT REFERENCES producto(id),
+    unidad_presentacion_id INT REFERENCES unidad_medida(id),
+    cantidad_por_presentacion INT DEFAULT 1,
+    precio_compra NUMERIC(12,2) NOT NULL,
+    precio_sugerido NUMERIC(12,2) NOT NULL,
+    precio_venta NUMERIC(12,2) NOT NULL,
+    observacion TEXT
+);
+
+-- =====================
+-- INVENTARIO POR LOTE
+-- =====================
+
+CREATE TABLE inventario (
+    id SERIAL PRIMARY KEY,
+    producto_id INT REFERENCES producto(id),
+    lote VARCHAR(50) NOT NULL,
+    fecha_vencimiento DATE,
+    stock INT DEFAULT 0
+);
+
+-- =====================
+-- COMPRAS
+-- =====================
+
+CREATE TABLE compra (
+    id SERIAL PRIMARY KEY,
+    proveedor_id INT REFERENCES proveedor(id),
+    usuario_id INT REFERENCES usuario(id),
+    fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    total NUMERIC(12,2) NOT NULL
+);
+
+CREATE TABLE compra_detalle (
+    id SERIAL PRIMARY KEY,
+    compra_id INT REFERENCES compra(id),
+    presentacion_id INT REFERENCES presentacion(id),
+    cantidad INT NOT NULL,
+    precio_unitario NUMERIC(12,2) NOT NULL,
+    subtotal NUMERIC(12,2) NOT NULL
+);
+
+-- =====================
+-- VENTAS
+-- =====================
+
+CREATE TABLE venta (
+    id SERIAL PRIMARY KEY,
+    cliente_id INT REFERENCES cliente(id),
+    usuario_id INT REFERENCES usuario(id),
+    fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    total NUMERIC(12,2) NOT NULL
+);
+
+CREATE TABLE venta_detalle (
+    id SERIAL PRIMARY KEY,
+    venta_id INT REFERENCES venta(id),
+    presentacion_id INT REFERENCES presentacion(id),
+    cantidad_presentacion INT NOT NULL,
+    precio_unitario NUMERIC(12,2) NOT NULL,
+    subtotal NUMERIC(12,2) NOT NULL
+);
+
+-- =====================
+-- MOVIMIENTOS DE INVENTARIO
+-- =====================
+
+CREATE TABLE movimiento_inventario (
+    id SERIAL PRIMARY KEY,
+    producto_id INT REFERENCES producto(id),
+    lote VARCHAR(50) NOT NULL,
+    tipo VARCHAR(20) CHECK(tipo IN ('entrada','salida')) NOT NULL,
+    cantidad INT NOT NULL,
+    fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    usuario_id INT REFERENCES usuario(id),
+    observacion TEXT
+);
+
+-- =====================
+-- RECETAS MÉDICAS
+-- =====================
+
+CREATE TABLE receta (
+    id SERIAL PRIMARY KEY,
+    cliente_id INT REFERENCES cliente(id),
+    medico_id INT REFERENCES medico(id),
+    fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE receta_detalle (
+    id SERIAL PRIMARY KEY,
+    receta_id INT REFERENCES receta(id),
+    producto_id INT REFERENCES producto(id),
+    dosis VARCHAR(100),
+    duracion VARCHAR(100)
+);
+
+-- =====================
+-- DATOS DE EJEMPLO
+-- =====================
+
+-- Categorías
+INSERT INTO categoria (nombre, descripcion) VALUES
+('Medicamento', 'Productos farmacéuticos'),
+('Perfumería', 'Cosméticos y fragancias'),
+('Cuidado Personal', 'Higiene y cuidado personal'),
+('Ortopedia', 'Productos ortopédicos y de apoyo');
+
+-- Unidades
+INSERT INTO unidad_medida (nombre, abreviatura) VALUES
+('Unidad', 'u'),
+('Caja', 'caja'),
+('Frasco', 'fras'),
+('Blíster', 'bl');
+
+-- Roles
+INSERT INTO rol (nombre, descripcion) VALUES
+('Administrador', 'Acceso total al sistema'),
+('Farmacéutico', 'Gestiona ventas y recetas'),
+('Cajero', 'Registra ventas y cobros');
+
+-- Usuarios
+INSERT INTO usuario (username, password_hash, nombre, telefono, email, rol_id) VALUES
+('ana', 'hash_pass123', 'Ana Martínez', '0981-111222', 'ana@farmacia.com', 3),
+('carlos', 'hash_pass456', 'Carlos López', '0981-333444', 'carlos@farmacia.com', 2);
+
+-- Proveedores
+INSERT INTO proveedor (nombre, ruc, telefono, direccion) VALUES
+('Laboratorios Paraguay S.A.', '80012345-6', '021-123456', 'Av. Salud 123'),
+('Distribuidora ABC', '80054321-9', '021-654321', 'Calle Comercio 456');
+
+-- Clientes
+INSERT INTO cliente (nombre, documento, telefono, direccion) VALUES
+('Juan Pérez', '1234567', '0981-123456', 'Calle Falsa 123'),
+('María Gómez', '7654321', '0981-654321', 'Av. Siempre Viva 456');
+
+-- Médicos
+INSERT INTO medico (nombre, matricula, especialidad) VALUES
+('Dr. Luis Fernández', 'M12345', 'Medicina General'),
+('Dra. Claudia Rojas', 'M54321', 'Pediatría');
+
+-- Productos
+INSERT INTO producto (nombre, descripcion, categoria_id, unidad_base_id, es_medicamento, requiere_receta, precio_compra, precio_sugerido, precio_venta) VALUES
+('Paracetamol 500mg', 'Analgésico y antipirético', 1, 1, TRUE, FALSE, 15000, 25000, 23000),
+('Ibuprofeno 400mg', 'Anti-inflamatorio', 1, 1, TRUE, FALSE, 12000, 20000, 19000),
+('Shampoo Suave', 'Shampoo para uso diario', 3, 1, FALSE, FALSE, 8000, 12000, 11000),
+('Muleta Ajustable', 'Muleta de aluminio ajustable', 4, 1, FALSE, FALSE, 50000, 75000, 70000);
+
+-- Presentaciones
+INSERT INTO presentacion (producto_id, unidad_presentacion_id, cantidad_por_presentacion, precio_compra, precio_sugerido, precio_venta, observacion) VALUES
+(1, 2, 20, 15000*20, 25000*20, 23000*20, NULL),
+(1, 4, 10, 15000*10, 25000*10, 23000*10, 'Promoción 2x1'),
+(2, 2, 10, 12000, 20000, 19000, NULL),
+(3, 3, 1, 8000, 12000, 11000, NULL),
+(4, 1, 1, 50000, 75000, 70000, NULL);
+
+-- Inventario
+INSERT INTO inventario (producto_id, lote, fecha_vencimiento, stock) VALUES
+(1, 'L001', '2025-12-31', 100),
+(1, 'L002', '2026-03-31', 50),
+(2, 'I001', '2025-10-30', 200),
+(3, 'S001', '2026-01-15', 30),
+(4, 'M001', NULL, 10);
+
+-- Compras
+INSERT INTO compra (proveedor_id, usuario_id, fecha, total) VALUES
+(1, 2, '2025-08-01', 400000);
+
+INSERT INTO compra_detalle (compra_id, presentacion_id, cantidad, precio_unitario, subtotal) VALUES
+(1, 1, 20, 15000, 300000),
+(1, 3, 10, 12000, 100000);
+
+-- Ventas
+INSERT INTO venta (cliente_id, usuario_id, fecha, total) VALUES
+(1, 1, '2025-08-05', 46000);
+
+INSERT INTO venta_detalle (venta_id, presentacion_id, cantidad_presentacion, precio_unitario, subtotal) VALUES
+(1, 1, 2, 23000, 46000);
+
+-- Recetas
+INSERT INTO receta (cliente_id, medico_id, fecha) VALUES
+(1, 1, '2025-08-05');
+
+INSERT INTO receta_detalle (receta_id, producto_id, dosis, duracion) VALUES
+(1, 1, '500mg cada 8 horas', '5 días');
