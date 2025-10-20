@@ -114,7 +114,7 @@ public class RolController implements ActionListener {
             System.out.println("click en el boton Guardar");
             if (operacion == 'N') {
                 System.out.println("ACCION DE INSERT");
-                crud.crearRol(getRolForm());
+                crud.crear(getRolForm());
             }
 
             if (operacion == 'M') {
@@ -130,7 +130,7 @@ public class RolController implements ActionListener {
     }
 
     private void listar(String valor) {
-        List<Rol> lista = crud.listarRol(valor);
+        List<Rol> lista = crud.listar(valor);
         modelo.setLista(lista);
         gui.tabla.setModel(modelo);
         gui.tabla.updateUI();
