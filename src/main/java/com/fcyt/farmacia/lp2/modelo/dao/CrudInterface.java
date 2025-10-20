@@ -14,11 +14,12 @@ import java.util.List;
 /**
  *
  * @author cmendieta
+ * Interface: especifica que metodos debe estar presentes
  */
-public interface RolInterface {
-    void crearRol(Rol rol);
-    Rol getRolById(Integer id);
-    List<Rol>  listarRol(String valor);
-    void actualizar(Rol rol);
+public interface CrudInterface<T> {
+    void crear(T obj);
+    T getById(Integer id);
+    List<T>  listar(String valor);
+    void actualizar(T obj);
     void eliminar(Integer id);
 }
