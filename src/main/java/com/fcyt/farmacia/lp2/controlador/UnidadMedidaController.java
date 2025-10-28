@@ -4,10 +4,10 @@
  */
 package com.fcyt.farmacia.lp2.controlador;
 
-import com.fcyt.farmacia.lp2.modelo.entidad.Categoria;
-import com.fcyt.farmacia.lp2.modelo.dao.CategoriaDaoImpl;
-import com.fcyt.farmacia.lp2.modelo.tabla.CategoriaTablaModel;
-import com.fcyt.farmacia.lp2.vista.GUICategoria;
+import com.fcyt.farmacia.lp2.modelo.entidad.UnidadMedida;
+import com.fcyt.farmacia.lp2.modelo.dao.UnidadMedidaDaoImpl;
+import com.fcyt.farmacia.lp2.modelo.tabla.UnidadMedidaTablaModel;
+import com.fcyt.farmacia.lp2.vista.GUIUnidadMedida;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -20,17 +20,17 @@ import javax.swing.JTable;
  *
  * @author cmendieta
  */
-public class CategoriaController implements ActionListener {
+public class UnidadMedidaController implements ActionListener {
 
-    private GUICategoria gui;
-    private CategoriaDaoImpl crud;
+    private GUIUnidadMedida gui;
+    private UnidadMedidaDaoImpl crud;
     private char operacion; // N, M, E
 
-    private Categoria rol = new Categoria();
+    private UnidadMedida rol = new UnidadMedida();
 
-    CategoriaTablaModel modelo = new CategoriaTablaModel();
+    UnidadMedidaTablaModel modelo = new UnidadMedidaTablaModel();
 
-    public CategoriaController(GUICategoria gui, CategoriaDaoImpl crud) {
+    public UnidadMedidaController(GUIUnidadMedida gui, UnidadMedidaDaoImpl crud) {
         this.gui = gui;
         this.crud = crud;
         this.gui.btnGuardar.addActionListener(this);
@@ -44,15 +44,14 @@ public class CategoriaController implements ActionListener {
                 System.out.println("click en la tabla");
                 JTable tabla = (JTable) e.getSource();
                 int row = tabla.rowAtPoint(e.getPoint());
-                CategoriaTablaModel model = (CategoriaTablaModel) tabla.getModel();
-                rol = model.getCategoriaByRow(row);
+                UnidadMedidaTablaModel model = (UnidadMedidaTablaModel) tabla.getModel();
+                rol = model.getUnidadMedidaByRow(row);
                 System.out.println(rol.getNombre());
-                setCategoriaForm(rol);
+                setUnidadMedidaForm(rol);
             }
         });
         listar("");
         habilitarBotones(false);
-        this.gui.setLocationRelativeTo(gui);
         this.gui.setVisible(true);
 
     }
@@ -99,7 +98,7 @@ public class CategoriaController implements ActionListener {
                         JOptionPane.QUESTION_MESSAGE
                 );
                 if (ok == 0) {
-                    crud.eliminar(modelo.getCategoriaByRow(fila).getId());
+                    crud.eliminar(modelo.getUnidadMedidaByRow(fila).getId());
                     listar("");
                 }
             }
@@ -115,13 +114,13 @@ public class CategoriaController implements ActionListener {
             System.out.println("click en el boton Guardar");
             if (operacion == 'N') {
                 System.out.println("ACCION DE INSERT");
-                crud.crear(getCategoriaForm());
+                crud.crear(getUnidadMedidaForm());
             }
 
             if (operacion == 'M') {
                 System.out.println("ACCION DE MODIFICAR");
                 // LOGICA PARA MODIFICAR
-                crud.actualizar(getCategoriaForm());
+                crud.actualizar(getUnidadMedidaForm());
             }
             limpiar();
             listar("");
@@ -131,35 +130,35 @@ public class CategoriaController implements ActionListener {
     }
 
     private void listar(String valor) {
-        List<Categoria> lista = crud.listar(valor);
+        List<UnidadMedida> lista = crud.listar(valor);
         modelo.setLista(lista);
         gui.tabla.setModel(modelo);
         gui.tabla.updateUI();
     }
 
     // recuperar los datos del formulario
-    private Categoria getCategoriaForm() {
+    private UnidadMedida getUnidadMedidaForm() {
         System.out.println("rol" + rol.getId());
         rol.setNombre(this.gui.txtNombre.getText());
-        rol.setDescripcion(this.gui.txtDescripcion.getText());
+        rol.setAbreviatura(this.gui.txtAbreviatura.getText());
         return rol;
     }
 
     // mostrar datos en el formulario
-    private void setCategoriaForm(Categoria rol) {
+    private void setUnidadMedidaForm(UnidadMedida rol) {
         gui.txtNombre.setText(rol.getNombre());
-        gui.txtDescripcion.setText(rol.getDescripcion());
+        gui.txtAbreviatura.setText(rol.getAbreviatura());
     }
 
     //Funcion encargado de limpiar el formulario
     private void limpiar() {
         gui.txtNombre.setText("");
-        gui.txtDescripcion.setText("");
+        gui.txtAbreviatura.setText("");
     }
 
     private void habilitarCampos(Boolean estado) {
         gui.txtNombre.setEnabled(estado);
-        gui.txtDescripcion.setEnabled(estado);
+        gui.txtAbreviatura.setEnabled(estado);
     }
 
     private void habilitarBotones(Boolean estado) {

@@ -15,6 +15,7 @@ import java.util.List;
  *
  * @author cmendieta
  * Interface: especifica que metodos debe estar presentes
+ * T : Se usa para definir un tipo genérico que se reemplazará cuando se instancie la clase o método.
  */
 public interface CrudInterface<T> {
     void crear(T obj);

@@ -8,13 +8,18 @@ package com.fcyt.farmacia.lp2.modelo.entidad;
  *
  * @author cmendieta
  */
-public class Categoria {
+public class UnidadMedida {
+    Integer id;
+    String nombre;
+    String abreviatura;
 
-    private Integer id;
-    private String nombre;
-    private String descripcion;
+    public UnidadMedida(Integer id, String nombre, String abreviatura) {
+        this.id = id;
+        this.nombre = nombre;
+        this.abreviatura = abreviatura;
+    }
 
-    public Categoria() {
+    public UnidadMedida() {
     }
 
     public Integer getId() {
@@ -33,24 +38,20 @@ public class Categoria {
         this.nombre = nombre;
     }
 
-    public String getDescripcion() {
-        return descripcion;
+    public String getAbreviatura() {
+        return abreviatura;
     }
 
-    public void setDescripcion(String descripcion) {
-        this.descripcion = descripcion;
+    public void setAbreviatura(String abreviatura) {
+        this.abreviatura = abreviatura;
     }
 
     @Override
     public String toString() {
-        return id + "- " + nombre; // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/OverriddenMethodBody
+        return id + " - " +nombre; // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/OverriddenMethodBody
     }
-
-    @Override
-    public boolean equals(Object obj) {
-        Integer cod1 = getId();
-        Integer cod2 = ((Categoria) obj).getId();
-        return cod1.equals(cod2);
-    }
-
+    
+    
+    
+    
 }

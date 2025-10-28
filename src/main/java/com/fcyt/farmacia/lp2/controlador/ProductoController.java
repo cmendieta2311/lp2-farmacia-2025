@@ -2,17 +2,26 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
+
 package com.fcyt.farmacia.lp2.controlador;
 
-import com.fcyt.farmacia.lp2.modelo.entidad.Categoria;
 import com.fcyt.farmacia.lp2.modelo.dao.CategoriaDaoImpl;
-import com.fcyt.farmacia.lp2.modelo.tabla.CategoriaTablaModel;
-import com.fcyt.farmacia.lp2.vista.GUICategoria;
+import com.fcyt.farmacia.lp2.modelo.entidad.Producto;
+import com.fcyt.farmacia.lp2.modelo.dao.ProductoDaoImpl;
+import com.fcyt.farmacia.lp2.modelo.dao.ProductoDaoImpl;
+import com.fcyt.farmacia.lp2.modelo.dao.UnidadMedidaDaoImpl;
+import com.fcyt.farmacia.lp2.modelo.entidad.Categoria;
+import com.fcyt.farmacia.lp2.modelo.entidad.UnidadMedida;
+import com.fcyt.farmacia.lp2.modelo.tabla.ProductoTablaModel;
+import com.fcyt.farmacia.lp2.vista.GUIProducto;
+import com.fcyt.farmacia.lp2.vista.GUIProducto;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JComboBox;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 
@@ -20,17 +29,20 @@ import javax.swing.JTable;
  *
  * @author cmendieta
  */
-public class CategoriaController implements ActionListener {
+public class ProductoController implements ActionListener {
 
-    private GUICategoria gui;
-    private CategoriaDaoImpl crud;
+    private GUIProducto gui;
+    private ProductoDaoImpl crud;
     private char operacion; // N, M, E
 
-    private Categoria rol = new Categoria();
+    private Producto producto = new Producto();
+    
+    CategoriaDaoImpl crudCategoria = new CategoriaDaoImpl();
+    UnidadMedidaDaoImpl crudUnidad =  new UnidadMedidaDaoImpl();
 
-    CategoriaTablaModel modelo = new CategoriaTablaModel();
+    ProductoTablaModel modelo = new ProductoTablaModel();
 
-    public CategoriaController(GUICategoria gui, CategoriaDaoImpl crud) {
+    public ProductoController(GUIProducto gui, ProductoDaoImpl crud) {
         this.gui = gui;
         this.crud = crud;
         this.gui.btnGuardar.addActionListener(this);
@@ -44,12 +56,14 @@ public class CategoriaController implements ActionListener {
                 System.out.println("click en la tabla");
                 JTable tabla = (JTable) e.getSource();
                 int row = tabla.rowAtPoint(e.getPoint());
-                CategoriaTablaModel model = (CategoriaTablaModel) tabla.getModel();
-                rol = model.getCategoriaByRow(row);
-                System.out.println(rol.getNombre());
-                setCategoriaForm(rol);
+                ProductoTablaModel model = (ProductoTablaModel) tabla.getModel();
+                producto = model.getProductoByRow(row);
+                System.out.println(producto.getNombre());
+                setProductoForm(producto);
             }
         });
+        llenarComboCategoria(gui.jcboCategoria);
+        llenarComboUnidadMedida(gui.jcboUnidadMedida);
         listar("");
         habilitarBotones(false);
         this.gui.setLocationRelativeTo(gui);
@@ -99,7 +113,7 @@ public class CategoriaController implements ActionListener {
                         JOptionPane.QUESTION_MESSAGE
                 );
                 if (ok == 0) {
-                    crud.eliminar(modelo.getCategoriaByRow(fila).getId());
+                    crud.eliminar(modelo.getProductoByRow(fila).getId());
                     listar("");
                 }
             }
@@ -107,21 +121,21 @@ public class CategoriaController implements ActionListener {
         }
 
         if (ae.getSource() == gui.btnGuardar) {
-            boolean v_control = validarDatos();
-            if(v_control ==  true){
+            boolean v_contproducto = validarDatos();
+            if(v_contproducto ==  true){
                 JOptionPane.showMessageDialog(gui, "Favor completar los datos obligatorio");
                 return;
             }
             System.out.println("click en el boton Guardar");
             if (operacion == 'N') {
                 System.out.println("ACCION DE INSERT");
-                crud.crear(getCategoriaForm());
+                crud.crear(getProductoForm());
             }
 
             if (operacion == 'M') {
                 System.out.println("ACCION DE MODIFICAR");
                 // LOGICA PARA MODIFICAR
-                crud.actualizar(getCategoriaForm());
+                crud.actualizar(getProductoForm());
             }
             limpiar();
             listar("");
@@ -131,24 +145,32 @@ public class CategoriaController implements ActionListener {
     }
 
     private void listar(String valor) {
-        List<Categoria> lista = crud.listar(valor);
+        List<Producto> lista = crud.listar(valor);
         modelo.setLista(lista);
         gui.tabla.setModel(modelo);
         gui.tabla.updateUI();
     }
 
     // recuperar los datos del formulario
-    private Categoria getCategoriaForm() {
-        System.out.println("rol" + rol.getId());
-        rol.setNombre(this.gui.txtNombre.getText());
-        rol.setDescripcion(this.gui.txtDescripcion.getText());
-        return rol;
+    private Producto getProductoForm() {
+        System.out.println("producto" + producto.getId());
+        producto.setNombre(this.gui.txtNombre.getText());
+        producto.setDescripcion(this.gui.txtDescripcion.getText());
+        return producto;
     }
 
     // mostrar datos en el formulario
-    private void setCategoriaForm(Categoria rol) {
-        gui.txtNombre.setText(rol.getNombre());
-        gui.txtDescripcion.setText(rol.getDescripcion());
+    private void setProductoForm(Producto producto) {
+        gui.txtNombre.setText(producto.getNombre());
+        gui.txtDescripcion.setText(producto.getDescripcion());
+        if(producto.getEsMedicamento()){
+            gui.btnEsMedSi.setSelected(true);
+        }else{
+            gui.btnEsMedNo.setSelected(true);
+        }
+        gui.jcboCategoria.setSelectedItem(producto.getCategoria());
+        gui.jcboUnidadMedida.setSelectedItem(producto.getUnidadMedida());
+        
     }
 
     //Funcion encargado de limpiar el formulario
@@ -174,6 +196,30 @@ public class CategoriaController implements ActionListener {
             gui.txtNombre.requestFocus();
         }
         return vacio;
+    }
+    
+    private void llenarComboCategoria (JComboBox cbo){
+        DefaultComboBoxModel<Categoria> model =  new DefaultComboBoxModel();
+        
+        List<Categoria> lista = crudCategoria.listar("");
+        for (int i = 0; i < lista.size(); i++) {
+            Categoria categoria = lista.get(i);
+            model.addElement(categoria);
+        }
+        
+        cbo.setModel(model); 
+    }
+    
+     private void llenarComboUnidadMedida (JComboBox cbo){
+        DefaultComboBoxModel<UnidadMedida> model =  new DefaultComboBoxModel();
+        
+        List<UnidadMedida> lista = crudUnidad.listar("");
+        for (int i = 0; i < lista.size(); i++) {
+            UnidadMedida unidad = lista.get(i);
+            model.addElement(unidad);
+        }
+        
+        cbo.setModel(model); 
     }
 
 }

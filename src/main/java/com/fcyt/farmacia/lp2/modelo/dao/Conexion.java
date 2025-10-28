@@ -19,7 +19,7 @@ public class Conexion {
     //jdbc:postgresql://<host>:<puerto>/<nombre_base_datos>
     String url = "jdbc:postgresql://localhost:5432/farmacia";
     String usuario = "postgres";
-    String contraseña = "postgres";
+    String contraseña = "12345";
 
     // Conectar a BD
     public Connection conectarBD() throws SQLException {
